@@ -138,6 +138,11 @@ export class UsbDevice {
 
 export async function getUsbDevices(filters) {
 	if (filters) {
+		// Check for hack for passing a browser USBDevice in the id field when using
+		// openDeviceById so we don't prompt twice for a device with WebUSB
+		if (filters.length > 0 && filters[0].serialNumber && typeof filters[0].serialNumber === 'object') {
+			return [new UsbDevice(filters[0].serialNumber)];
+		}
 		// Validate filtering options
 		filters.forEach(f => {
 			if (f.productId && !f.vendorId) {

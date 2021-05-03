@@ -186,7 +186,7 @@ export class Device extends DeviceBase {
 	 * @param {Number} [options.timeout] Timeout (milliseconds).
 	 * @return {Promise}
 	 */
-	enterDfuMode({ timeout = globalOptions.requestTimeout } = {}) {
+	enterDfuMode({ noReconnectWait = false, timeout = globalOptions.requestTimeout } = {}) {
 		if (this.isInDfuMode) {
 			return;
 		}
@@ -195,15 +195,17 @@ export class Device extends DeviceBase {
 			await s.close();
 			let isInDfuMode;
 
-			while (!isInDfuMode) {
-				try {
-					await s.open({ includeDfu: true });
-					isInDfuMode = s.device.isInDfuMode;
-				} catch (error) {
-					// device is reconnecting, ignore
-				}
-				await s.close();
-				await s.delay(500);
+			if (!noReconnectWait) {
+				while (!isInDfuMode) {
+					try {
+						await s.open({ includeDfu: true });
+						isInDfuMode = s.device.isInDfuMode;
+					} catch (error) {
+						// device is reconnecting, ignore
+					}
+					await s.close();
+					await s.delay(500);
+				}	
 			}
 		});
 	}
